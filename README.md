@@ -1,16 +1,11 @@
-# teen
+# Teen
 
-A new Flutter project.
+Добро пожаловать в TEEN!
 
-## Getting Started
+TEEN - новая соцсеть для молодежи, где каждый найдет свою зону комфорта, а в ней и тех с кем можно с удовольствием пообщаться.
 
-This project is a starting point for a Flutter application.
+Создавайте свои зоны общения по интересам из любой сферы жизни, участвуйте в обсуждениях, делись своим опытом, станьте лидером мнений или же просто используйте приложение в качестве удобной поисковой системы.
 
-A few resources to get you started if this is your first Flutter project:
+Все это мы объединили в первую в мире социальную сеть TEEN с зонами общения, которые вы выбираете сами. 
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+TEEN. Твоя зона - твои правила.
