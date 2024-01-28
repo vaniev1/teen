@@ -61,7 +61,7 @@ class _NewZoneState extends State<NewZone> {
   ];
 
   Future<void> _getImage() async {
-    final pickedFile = await ImagePicker().getImage(source: ImageSource.gallery);
+    final pickedFile = await ImagePicker().pickImage(source: ImageSource.gallery);
 
     if (pickedFile != null) {
       setState(() {
@@ -566,7 +566,7 @@ class _NewZoneState extends State<NewZone> {
                             }
                           },
                           style: ElevatedButton.styleFrom(
-                            primary: selectedTags.contains(tag) ? color1 : backgroundColor,
+                            backgroundColor: selectedTags.contains(tag) ? color1 : backgroundColor,
                           ),
                           child: Text(tag, style: TextStyle(color: customWhite),),
                         );
