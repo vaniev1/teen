@@ -2,8 +2,12 @@ import 'dart:io';
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:jwt_decode/jwt_decode.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:intl/intl.dart';
+import 'package:flutter/services.dart';
+import 'dart:ui' as ui;
 
 
 Color backgroundColor = Color(0xFF1A1A1A); // Цвет фона
@@ -18,11 +22,22 @@ class NewZone extends StatefulWidget {
 
 class _NewZoneState extends State<NewZone> {
   final TextEditingController nameController = TextEditingController();
-  final int minCaptionLength = 15;
-  String? imagePath;
+  final int minCaptionLength = 4;
+  String? zoneAvatar;
   Color? selectedColor;
   double circleRadius = 0.0;
   final TextEditingController descriptionController = TextEditingController();
+  bool isLoading = false;
+
+
+  final timestamp = DateFormat('yyyy-MM-dd HH:mm:ss', 'en')
+      .format(DateTime.now().toUtc().add(Duration(hours: 3)));
+
+  String formatTimestamp(String timestamp) {
+    final parsedTime = DateTime.parse(timestamp).toLocal();
+    final formatter = DateFormat('yyyy-MM-dd HH:mm:ss');
+    return formatter.format(parsedTime.add(Duration(hours: 3)));
+  }
 
 
   List<Color> monotoneColors = [
@@ -46,17 +61,120 @@ class _NewZoneState extends State<NewZone> {
   ];
 
   Future<void> _getImage() async {
-    final pickedFile = await ImagePicker().getImage(
-        source: ImageSource.gallery);
+    final pickedFile = await ImagePicker().getImage(source: ImageSource.gallery);
 
     if (pickedFile != null) {
       setState(() {
-        imagePath = pickedFile.path;
-        selectedColor =
-        null; // Сбрасываем выбранный цвет, если выбрана фотография
+        zoneAvatar = pickedFile.path;
+        selectedColor = null; // Сбрасываем выбранный цвет, если выбрана фотография
+      });
+    } else {
+      setState(() {
+        // Генерируем изображение из выбранного цвета
+        selectedColor = Color(0xFFFFFFFF); // Белый цвет, чтобы не было прозрачности
+        zoneAvatar = null; // Сбрасываем выбранную фотографию
       });
     }
   }
+
+  Future<Map<String, dynamic>> getUserDataFromToken() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('authToken');
+    if (token != null) {
+      final decodedToken = Jwt.parseJwt(token);
+
+      // Extract other data from the token
+      final id = decodedToken['id'];
+      final username = decodedToken['username'];
+      final firstNameLastName = decodedToken['firstNameLastName'];
+      final email = decodedToken['email'];
+      final selectedImagePath = decodedToken['selectedImagePath'];
+
+      return {
+        'id': id,
+        'username': username,
+        'firstNameLastName': firstNameLastName,
+        'email': email,
+        'selectedImagePath': selectedImagePath,
+      };
+    }
+    return {}; // Return an empty map if token is not available
+  }
+
+
+  Future<void> createZone() async {
+    setState(() {
+      isLoading = true;
+    });
+
+    final url = Uri.parse('http://192.168.0.16:3000/zone');
+
+    Map<String, dynamic> userData = await getUserDataFromToken();
+
+    var request = http.MultipartRequest('POST', url);
+
+    if (zoneAvatar != null) {
+      // Если выбрана фотография, добавляем ее
+      request.files.add(await http.MultipartFile.fromPath('zoneAvatar', zoneAvatar!));
+    } else if (selectedColor != null) {
+      // Если цвет выбран, конвертируем его в изображение и отправляем
+      final colorImageBytes = await colorToImage(selectedColor!);
+      request.files.add(http.MultipartFile.fromBytes('zoneAvatar', colorImageBytes, filename: 'color-image.png'));
+    } else {
+      // Если ни цвет, ни фотография не выбраны, можно добавить значение по умолчанию или пропустить
+    }
+
+    request.fields.addAll({
+      'uid': userData['id'],
+      'fullname': userData['firstNameLastName'],
+      'selectedImagePath': userData['selectedImagePath'],
+      'timestamp': timestamp,
+      'username': userData['username'],
+      'zoneTitle': nameController.text,  // Добавляем название зоны
+      'zoneDescription': descriptionController.text,  // Добавляем описание зоны
+      'selectedTags': selectedTags.join(', '),  // Добавляем выбранные теги
+    });
+
+    // Добавьте явно заголовок Content-Type
+    request.headers['Content-Type'] = 'multipart/form-data';
+
+    try {
+      // Send the FormData with the file to the server
+      var response = await request.send();
+
+      if (response.statusCode == 200) {
+        // Successfully sent
+        Navigator.of(context).pop();
+      } else {
+        print("Error: ${response.reasonPhrase}");
+        // Handle errors
+      }
+    } catch (error) {
+      print("Error: $error");
+    } finally {
+      setState(() {
+        isLoading = false;
+      });
+    }
+  }
+
+  Future<List<int>> colorToImage(Color color) async {
+    final recorder = ui.PictureRecorder();
+    final canvas = Canvas(recorder, Rect.fromPoints(Offset(0.0, 0.0), Offset(100.0, 100.0)));
+    final paint = Paint()..color = color;
+    canvas.drawRect(Rect.fromPoints(Offset(0.0, 0.0), Offset(100.0, 100.0)), paint);
+
+    final picture = recorder.endRecording();
+    final img = await picture.toImage(100, 100);
+    final byteData = await img.toByteData(format: ui.ImageByteFormat.png);
+
+    return byteData!.buffer.asUint8List();
+  }
+
+
+
+
+
 
   List<String> genericTags = [
     'Искусство',
@@ -156,26 +274,33 @@ class _NewZoneState extends State<NewZone> {
               icon: Icon(Icons.arrow_back_ios),
               color: customWhite,
             ),
-            TextButton(
-              onPressed: nameController.text.length >= minCaptionLength
-                  ? () async {
-                Navigator.pop(context);
-                FocusScope.of(context).unfocus();
-                // Ваш код сохранения данных
-              }
-                  : null,
-              child: Container(
-                padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-                decoration: BoxDecoration(
-                  color: customWhite,
-                  borderRadius: BorderRadius.circular(30.0),
-                ),
-                child: Text(
-                  'Создать',
-                  style: TextStyle(color: backgroundColor),
+            Visibility(
+              visible: nameController.text.length >= minCaptionLength && selectedTags.length >= 2,
+              child: TextButton(
+                onPressed: () async {
+                  // Ваш код, выполняемый при нажатии на активную кнопку
+                  FocusScope.of(context).unfocus();
+                  Map<String, dynamic> userData = await getUserDataFromToken();
+                  if (userData.isNotEmpty) {
+                    createZone();
+                  } else {
+                    // Обработка случая, когда userData пусто
+                  }
+                  // Ваш код сохранения данных
+                },
+                child: Container(
+                  padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                  decoration: BoxDecoration(
+                    color: customWhite,
+                    borderRadius: BorderRadius.circular(30.0),
+                  ),
+                  child: Text(
+                    'Создать',
+                    style: TextStyle(color: backgroundColor),
+                  ),
                 ),
               ),
-            ),
+            )
           ],
         ),
       ),
@@ -197,15 +322,15 @@ class _NewZoneState extends State<NewZone> {
                   margin: EdgeInsets.symmetric(horizontal: 15.0, vertical: 10),
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(10),
-                    color: selectedColor != null ? selectedColor : Colors.grey,
-                    image: imagePath != null
+                    color: selectedColor != null ? selectedColor : Colors.transparent,
+                    image: zoneAvatar != null
                         ? DecorationImage(
-                      image: FileImage(File(imagePath!)),
+                      image: FileImage(File(zoneAvatar!)),
                       fit: BoxFit.cover,
                     )
                         : null,
                   ),
-                  child: (imagePath == null && selectedColor == null)
+                  child: (zoneAvatar == null && selectedColor == null)
                       ? Center(
                     child: Icon(
                       Icons.add_a_photo,
@@ -235,8 +360,8 @@ class _NewZoneState extends State<NewZone> {
                           height: 60.0,
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
-                            color: Colors.grey,
-                            border: imagePath != null
+                            color: Colors.transparent,
+                            border: zoneAvatar != null
                                 ? Border.all(color: customWhite, width: 2.0)
                                 : null,
                           ),
@@ -255,7 +380,7 @@ class _NewZoneState extends State<NewZone> {
                         onTap: () {
                           setState(() {
                             selectedColor = monotoneColors[index - 1];
-                            imagePath = null; // Сбрасываем выбранную фотографию
+                            zoneAvatar = null; // Сбрасываем выбранную фотографию
                             circleRadius =
                             60.0; // Устанавливаем радиус для анимации
                           });
@@ -280,7 +405,7 @@ class _NewZoneState extends State<NewZone> {
                         onTap: () {
                           setState(() {
                             selectedColor = gradientColors[gradientIndex][0];
-                            imagePath = null; // Сбрасываем выбранную фотографию
+                            zoneAvatar = null; // Сбрасываем выбранную фотографию
                             circleRadius =
                             60.0; // Устанавливаем радиус для анимации
                           });
@@ -328,7 +453,9 @@ class _NewZoneState extends State<NewZone> {
                     hintText: 'Название зоны...',
                     hintStyle: TextStyle(color: Colors.grey),
                     contentPadding: EdgeInsets.symmetric(
-                        horizontal: 20.0, vertical: 15.0),
+                      horizontal: 20.0,
+                      vertical: 15.0,
+                    ),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(20.0),
                     ),
@@ -341,6 +468,9 @@ class _NewZoneState extends State<NewZone> {
                       borderRadius: BorderRadius.circular(20.0),
                     ),
                   ),
+                  inputFormatters: [
+                    _FirstCharacterNoSpaceFormatter(),
+                  ],
                 ),
               ),
               Container(
@@ -450,5 +580,20 @@ class _NewZoneState extends State<NewZone> {
         ),
       ),
     );
+  }
+}
+
+
+class _FirstCharacterNoSpaceFormatter extends TextInputFormatter {
+  @override
+  TextEditingValue formatEditUpdate(TextEditingValue oldValue, TextEditingValue newValue) {
+    if (newValue.text.isNotEmpty && newValue.text.startsWith(' ')) {
+      // Если введен пробел как первый символ, удаляем его
+      return TextEditingValue(
+        text: newValue.text.trimLeft(),
+        selection: TextSelection.collapsed(offset: newValue.text.trimLeft().length),
+      );
+    }
+    return newValue;
   }
 }

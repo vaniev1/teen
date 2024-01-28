@@ -25,7 +25,14 @@ dependencies:
   flutter:
     sdk: flutter
   font_awesome_flutter: ^10.6.0
-  image_picker: ^0.8.3+4
+  image_picker: ^1.0.7  # Зависимость от image_picker
+  flutter_launcher_icons: ^0.13.1
+  shared_preferences: ^2.0.9
+  jwt_decoder: ^2.0.1
+  jwt_decode: ^0.3.1
+  intl: ^0.17.0
+  http: ^0.13.3
+  cached_network_image: ^3.1.0
 
 
 
@@ -35,13 +42,6 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_launcher_icons: ^0.13.1
-  shared_preferences: ^2.0.9
-  jwt_decoder: ^2.0.1
-  jwt_decode: ^0.3.1
-  intl: ^0.17.0
-  http: ^0.13.3
-
 
 flutter_icons:
   android: true

@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
-
+import 'package:teen/Models/Zone.dart';
 import 'ChatBubble.dart';
 import 'Message.dart';
 import 'ZoneInfo.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 Color backgroundColor = Color(0xFF1A1A1A); // Цвет фона
 Color customWhite = Color(0xFFCDD0CF); // Цвет белого
@@ -12,6 +13,10 @@ Color color2 = Color(0xFF757575); // Цвет отправленных сооб�
 
 
 class ConversationView extends StatefulWidget {
+  final Zone zone;
+
+  ConversationView({required this.zone});
+
   @override
   _ConversationViewState createState() => _ConversationViewState();
 }
@@ -41,14 +46,14 @@ class _ConversationViewState extends State<ConversationView> {
               // Навигация на другую страницу
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => ZoneInfo()),
+                MaterialPageRoute(builder: (context) => ZoneInfo(zone: widget.zone)),
               );
             },
             child: Container(
               padding: EdgeInsets.all(8.0),
               color: backgroundColor,
               child: AppBar(
-                title: Text('Обсуждение космоса'),
+                title: Text(widget.zone.zoneTitle),
                 centerTitle: true,
                 foregroundColor: customWhite,
                 backgroundColor: backgroundColor,
@@ -56,7 +61,8 @@ class _ConversationViewState extends State<ConversationView> {
                   Padding(
                     padding: const EdgeInsets.all(8.0),
                     child: CircleAvatar(
-                      backgroundImage: AssetImage("assets/kosmos.jpg"),
+                      radius: 20, // Установите радиус в соответствии с вашими требованиями
+                      backgroundImage: CachedNetworkImageProvider("http://192.168.0.16:3000/${widget.zone.avatar}"),
                     ),
                   ),
                 ],

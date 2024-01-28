@@ -79,7 +79,7 @@ class _RegistrationNumberViewState extends State<RegistrationNumberView> {
     String password = passwordController.text;
 
     final response = await http.post(
-      Uri.parse('http://192.168.0.14:3000/login'),
+      Uri.parse('http://192.168.0.16:3000/login'),
       headers: <String, String>{
         'Content-Type': 'application/json',
       },
@@ -114,7 +114,7 @@ class _RegistrationNumberViewState extends State<RegistrationNumberView> {
   }
 
   void checkEmailInDatabase() async {
-    var url = Uri.parse('http://192.168.0.14:3000/checkEmail'); // Изменяем URL
+    var url = Uri.parse('http://192.168.0.16:3000/checkEmail'); // Изменяем URL
     var response = await http.post(
       url,
       headers: {
@@ -249,7 +249,7 @@ class _RegistrationNumberViewState extends State<RegistrationNumberView> {
   // Метод для запроса на отправку кода подтверждения на почту
   Future<void> sendConfirmationCode(String email) async {
     final response = await http.post(
-      Uri.parse('http://192.168.0.14:3000/sendConfirmationCode'),
+      Uri.parse('http://192.168.0.16:3000/sendConfirmationCode'),
       headers: <String, String>{
         'Content-Type': 'application/json',
       },
@@ -564,6 +564,7 @@ class _RegistrationNumberViewState extends State<RegistrationNumberView> {
                         ? () {
                       // Проверяем истек ли таймер или он кликабельный
                       if (timerExpired) {
+                        sendConfirmationCode(mailController.text);
                         startNewTimer(); // Запускаем новый таймер с 15 секундами
                       } else {
                         // Добавьте код для запроса нового кода здесь

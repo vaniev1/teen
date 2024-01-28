@@ -6,6 +6,7 @@ const cors = require('cors');
 const app = express();
 const mongoose = require('mongoose');
 const User = require('./Users');
+const Zone = require('./Zone');
 const passport = require('passport');
 const LocalStrategy = require('passport-local').Strategy;
 const { v4: uuidv4 } = require('uuid');
@@ -16,6 +17,9 @@ const bcrypt = require('bcrypt');
 const multer = require('multer');
 const path = require('path');
 const nodemailer = require('nodemailer');
+const sharp = require('sharp');
+const fs = require('fs'); // Добавьте эту строку
+
 
 
 
@@ -105,7 +109,7 @@ passport.deserializeUser(async (id, done) => {
 });
 
 app.get('/', (req, res) => {
-  res.send('Hello, Vizzie!');
+  res.send('Hello, Teen!');
 });
 
 
@@ -114,16 +118,135 @@ const avatarsStaticFilesPath = path.join(__dirname, 'avatars');
 // Используйте middleware для обслуживания статических файлов
 app.use('/avatars', express.static(avatarsStaticFilesPath));
 
-const storage = multer.diskStorage({
+const avatarsStorage = multer.diskStorage({
   destination: 'avatars/', // specify the directory where you want to save the images
   filename: function (req, file, cb) {
     cb(null, Date.now() + '-' + file.originalname);
   },
 });
 
-const upload = multer({ storage: storage });
+const avatarsUpload = multer({ storage: avatarsStorage });
+const zoneAvatarsStaticFilesPath = path.join(__dirname, 'zoneAvatar');
 
-app.post('/register', upload.single('selectedImage'), async (req, res) => {
+// Используйте middleware для обслуживания статических файлов
+app.use('/zoneAvatar', express.static(zoneAvatarsStaticFilesPath));
+
+const zoneAvatarsStorage = multer.diskStorage({
+  destination: 'zoneAvatar/', // Укажите каталог, где вы хотите сохранить изображения
+  filename: function (req, file, cb) {
+    cb(null, Date.now() + '-' + file.originalname);
+  },
+});
+
+const zoneAvatarsUpload = multer({ storage: zoneAvatarsStorage });
+
+app.post('/zone', zoneAvatarsUpload.single('zoneAvatar'), async (req, res) => {
+  try {
+    const {
+      uid,
+      fullname,
+      username,
+      timestamp,
+      selectedImagePath,
+      zoneTitle,
+      zoneDescription,
+      selectedTags,
+      selectedColor,
+    } = req.body;
+
+    let avatar;
+
+    // Проверка, было ли предоставлено изображение или цвет
+    if (req.file) {
+      avatar = `zoneAvatar/${req.file.filename}`;
+    } else if (selectedColor) {
+      // Если предоставлен цвет, создайте изображение из цвета и сохраните его
+      const colorImagePath = `zoneAvatar/${Date.now()}-color-image.png`;
+      const colorImageBuffer = await createColorImage(selectedColor);
+      fs.writeFileSync(colorImagePath, colorImageBuffer, { flag: 'w', encoding: 'binary' });
+      avatar = colorImagePath;
+    } else {
+      avatar = null;
+    }
+
+    const newZone = new Zone({
+      uid,
+      fullname,
+      username,
+      avatar,
+      timestamp,
+      selectedImagePath,
+      zoneTitle,
+      zoneDescription,
+      selectedTags,
+      selectedColor,
+      data: { members: [], messages: [] },
+    });
+
+    // Добавление создателя зоны в список участников
+    const creator = {
+      fullname,
+      selectedImagePath,
+      uid,
+      username,
+    };
+    newZone.data.members.push(creator);
+
+    // Добавление информации о зоне в массив created_zones пользователя
+    const zoneInfo = {
+      zoneId: newZone._id,
+      uid,
+      fullname,
+      username,
+      zoneTitle,
+      avatar,
+      selectedImagePath,
+      zoneDescription,
+      selectedTags,
+      timestamp,
+    };
+
+
+    const updatedUser = await User.findOneAndUpdate(
+      { _id: uid }, // Используем _id вместо uid
+      { $push: { "data.created_zones": zoneInfo } },
+      { new: true }
+    );
+
+    // Дождитесь завершения операции сохранения в базе данных
+    const savedZone = await newZone.save();
+
+    res.status(200).json(savedZone);
+  } catch (error) {
+    console.error('Error in createZone:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+
+
+
+async function createColorImage(color) {
+  // Импортируйте библиотеку для работы с изображениями (например, sharp)
+  // Создайте изображение из цвета и верните его в виде буфера
+  // Пример с использованием sharp:
+  const sharp = require('sharp');
+
+  const imageBuffer = await sharp({
+    create: {
+      width: 100, // Установите ширину и высоту по вашему выбору
+      height: 100,
+      channels: 4, // RGBA
+      background: { r: color.r, g: color.g, b: color.b, alpha: color.a },
+    },
+  }).png().toBuffer();
+
+  return imageBuffer;
+}
+
+
+
+app.post('/register', avatarsUpload.single('selectedImage'), async (req, res) => {
   const { email, firstNameLastName, username, password, isChecked } = req.body;
 
   const selectedImagePath = req.file ? req.file.path : null;
@@ -225,35 +348,78 @@ const transporter = nodemailer.createTransport({
 
 const confirmationCodes = {}; // Хранение сопоставления email и ожидаемого кода подтверждения
 
-// Эндпоинт для отправки кода подтверждения
+app.use(express.json());
+app.use('/assets', express.static(path.join(__dirname, 'assets')));
+
 app.post('/sendConfirmationCode', (req, res) => {
   const { email } = req.body;
-
-  // Генерация шестизначного кода
   const confirmationCode = Math.floor(100000 + Math.random() * 900000);
 
-  confirmationCodes[email] = confirmationCode;
+  const logoPath = path.join(__dirname, '..', 'assets', 'logo.png');
+  const logoData = fs.readFileSync(logoPath);
+  const logoBase64 = logoData.toString('base64');
 
-
-  // Настройка содержания письма
   const mailOptions = {
-    from: 'thevisualapp@gmail.com',  // Замените на свой адрес электронной почты
+    from: 'thevisualapp@gmail.com',
     to: email,
-    subject: 'Код подтверждения регистрации',
-    text: `Ваш код подтверждения: ${confirmationCode}`
+    subject: 'Код подтверждения Teen',
+    html: `
+      <html>
+        <head>
+          <style>
+            .container {
+              background-color: black; /* Черный фон */
+              color: white; /* Белый цвет текста */
+              font-family: Arial, sans-serif;
+              text-align: center;
+              margin: 0;
+              padding: 0;
+              padding-bottom: 60px; /* Отступ вниз */
+            }
+
+            .logo {
+              width: 100px;
+            }
+
+            .welcome-message {
+              font-size: 18px;
+              margin-top: 20px;
+            }
+
+            .confirmation-code {
+              font-size: 24px;
+              font-weight: bold;
+              margin-top: 20px;
+              color: #7ED957;
+            }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <img class="logo" src="data:image/png;base64,${logoBase64}" alt="Логотип приложения">
+            <p>Добро пожаловать в новую социальную сеть для общения по интересам!</p>
+            <p class="confirmation-code">Ваш код подтверждения: <strong>${confirmationCode}</strong></p>
+            <p>Благодарим за регистрацию!</p>
+          </div>
+        </body>
+      </html>
+    `,
   };
 
-  // Отправка письма
+
+
+
   transporter.sendMail(mailOptions, (error, info) => {
     if (error) {
       console.error(error);
       res.status(500).json({ error: 'Ошибка при отправке кода подтверждения' });
     } else {
       console.log('Письмо отправлено: ' + info.response);
-      res.status(200).json({ success: true, confirmationCode }); // Отправляем код в ответе
+      res.status(200).json({ success: true, confirmationCode });
     }
   });
 });
+
 
 
 
@@ -371,6 +537,15 @@ app.post('/zones', passport.authenticate('jwt', { session: false }), (req, res) 
     });
 });
 
+app.get('/zones', async (req, res) => {
+  try {
+    const zones = await Zone.find().exec();
+    res.status(200).json(zones);
+  } catch (error) {
+    console.error('Ошибка при получении зон:', error);
+    res.status(500).json({ error: 'Ошибка при получении зон' });
+  }
+});
 
 
 //const PORT = 27017;

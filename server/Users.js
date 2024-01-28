@@ -16,6 +16,7 @@ const userSchema = new mongoose.Schema({
     data: {
       blocked_users : [{userId : String}],
       blocked_to : [{currentUserId : String}],
+      created_zones : [{ zoneId: String, uid: String, fullname: String, username: String, zoneTitle: String, avatar: String, selectedImagePath : String, zoneDescription: String, selectedTags: String, timestamp: { type: Date, default: Date.now },}]
     },
 });
 

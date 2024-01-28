@@ -1,10 +1,21 @@
 import 'package:flutter/material.dart';
+import 'package:teen/Models/Zone.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 Color backgroundColor = Color(0xFF1A1A1A);
 Color customWhite = Color(0xFFCDD0CF);
 Color color1 = Color(0xFF282828); // Цвет полученных сообщений
 
-class ZoneInfo extends StatelessWidget {
+class ZoneInfo extends StatefulWidget {
+  final Zone zone;
+
+  ZoneInfo({required this.zone});
+
+  @override
+  _ZoneInfoState createState() => _ZoneInfoState();
+}
+
+class _ZoneInfoState extends State<ZoneInfo> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -27,16 +38,14 @@ class ZoneInfo extends StatelessWidget {
               ),
               child: Stack(
                 children: [
-                  // Фоновый контейнер с изображением из ассетов
-                  Container(
-                    width: double.infinity,
-                    height: 220,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(10),
-                      image: DecorationImage(
-                        image: AssetImage('assets/kosmos.jpg'),
-                        fit: BoxFit.cover,
-                      ),
+                  // Фоновый контейнер с изображением из сети
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(10),
+                    child: CachedNetworkImage(
+                      imageUrl: "http://192.168.0.16:3000/${widget.zone.avatar}",
+                      fit: BoxFit.cover,
+                      width: double.infinity,
+                      height: 220,
                     ),
                   ),
                   // Заливка для текста
@@ -53,24 +62,26 @@ class ZoneInfo extends StatelessWidget {
             ),
 
             Container(
-              margin: EdgeInsets.only(left: 15.0, top: 15.0), // Отступ слева и сверху
-              alignment: Alignment.centerLeft, // Выравнивание текста по левому краю
+              margin: EdgeInsets.only(left: 15.0, top: 15.0),
+              alignment: Alignment.centerLeft,
               child: Text(
-                "Обсуждение космоса",
+                widget.zone.zoneTitle,
                 style: TextStyle(
-                  fontSize: 24, // Увеличенный размер текста
+                  fontSize: 24,
                   fontWeight: FontWeight.bold,
                   color: customWhite,
                 ),
               ),
             ),
 
-            Container(
+            widget.zone.zoneDescription.isEmpty
+                ? Container() // Пустой контейнер, если описание пусто
+                : Container(
               width: double.infinity,
               margin: EdgeInsets.all(15.0),
               padding: EdgeInsets.all(15.0),
               decoration: BoxDecoration(
-                color: color1, // Цвет фона
+                color: color1,
                 borderRadius: BorderRadius.circular(10),
               ),
               child: Row(
@@ -80,7 +91,7 @@ class ZoneInfo extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          "Данная зона будет посвящена обсуждению космоса и всей этой космической тусовке",
+                          widget.zone.zoneDescription,
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
@@ -93,14 +104,14 @@ class ZoneInfo extends StatelessWidget {
                 ],
               ),
             ),
-            // Текст "Создатель"
+
             Container(
-              margin: EdgeInsets.only(left: 15.0, top: 15.0), // Отступ слева и сверху
-              alignment: Alignment.centerLeft, // Выравнивание текста по левому краю
+              margin: EdgeInsets.only(left: 15.0, top: 15.0),
+              alignment: Alignment.centerLeft,
               child: Text(
                 "Создатель",
                 style: TextStyle(
-                  fontSize: 24, // Увеличенный размер текста
+                  fontSize: 24,
                   fontWeight: FontWeight.bold,
                   color: customWhite,
                 ),
@@ -118,15 +129,11 @@ class ZoneInfo extends StatelessWidget {
               child: Row(
                 children: [
                   // Фотография
-                  Container(
-                    width: 60,
-                    height: 60,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      image: DecorationImage(
-                        image: AssetImage('assets/me.jpg'),
-                        fit: BoxFit.cover,
-                      ),
+                  Padding(
+                    padding: const EdgeInsets.all(0.0),
+                    child: CircleAvatar(
+                      radius: 25, // Установите радиус в соответствии с вашими требованиями
+                      backgroundImage: CachedNetworkImageProvider("http://192.168.0.16:3000/${widget.zone.selectedImagePath}"),
                     ),
                   ),
                   SizedBox(width: 15),
@@ -135,7 +142,7 @@ class ZoneInfo extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        "vaniev",
+                        widget.zone.username,
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
@@ -152,7 +159,7 @@ class ZoneInfo extends StatelessWidget {
               margin: EdgeInsets.only(left: 15.0, top: 15.0), // Отступ слева и сверху
               alignment: Alignment.centerLeft, // Выравнивание текста по левому краю
               child: Text(
-                "116 участников",
+                "${widget.zone.members.length} участников",
                 style: TextStyle(
                   fontSize: 24, // Увеличенный размер текста
                   fontWeight: FontWeight.bold,
@@ -165,33 +172,30 @@ class ZoneInfo extends StatelessWidget {
               height: 300,
               margin: EdgeInsets.symmetric(horizontal: 15.0, vertical: 10.0),
               child: ListView.builder(
-                itemCount: 116,
+                itemCount: widget.zone.members.length,
                 itemBuilder: (context, index) {
                   return Container(
                     margin: EdgeInsets.symmetric(vertical: 5),
-                    padding: EdgeInsets.all(10.0),
+                    padding: EdgeInsets.all(15.0),
                     decoration: BoxDecoration(
                       color: color1,
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: Row(
                       children: [
-                        Container(
-                          width: 40,
-                          height: 40,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            image: DecorationImage(
-                              image: AssetImage('assets/me.jpg'),
-                              fit: BoxFit.cover,
-                            ),
+                        Padding(
+                          padding: const EdgeInsets.all(0.0),
+                          child: CircleAvatar(
+                            radius: 25, // Установите радиус в соответствии с вашими требованиями
+                            backgroundImage: CachedNetworkImageProvider("http://192.168.0.16:3000/${widget.zone.selectedImagePath}"),
                           ),
                         ),
                         SizedBox(width: 10),
                         Text(
-                          "User $index",
+                          widget.zone.username,
                           style: TextStyle(
-                            fontSize: 16,
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
                             color: customWhite,
                           ),
                         ),

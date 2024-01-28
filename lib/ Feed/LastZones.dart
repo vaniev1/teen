@@ -1,8 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:teen/%20Feed/ZoneCell.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+import '../Models/Zone.dart';
 
 Color customWhite = Color(0xFFCDD0CF);
+Color customGreen = Color(0xFF7ED957); // Зеленый цвет
+
 
 class LastZones extends StatefulWidget {
   @override
@@ -10,7 +15,49 @@ class LastZones extends StatefulWidget {
 }
 
 class _LastZonesState extends State<LastZones> {
+
+  @override
+  void initState() {
+    super.initState();
+    fetchZones();
+  }
+
+  List<Zone> zones = [];
+  bool isLoading = false;
+
+
   bool switchValue = false;
+
+  Future<void> fetchZones() async {
+    if (isLoading) {
+      return;
+    }
+
+    setState(() {
+      isLoading = true;
+    });
+
+    try {
+      final response = await http.get(Uri.parse('http://192.168.0.16:3000/zones'));
+      if (response.statusCode == 200) {
+        List<dynamic> jsonResponse = json.decode(response.body);
+        List<Zone> fetchedZones = jsonResponse.map((data) => Zone.fromJson(data)).toList();
+
+        fetchedZones.sort((a, b) => b.timestamp.compareTo(a.timestamp));
+
+        setState(() {
+          isLoading = false;
+          zones = fetchedZones;
+        });
+      } else {
+        throw Exception('Не удалось загрузить желания');
+      }
+    } catch (e) {
+      setState(() {
+        isLoading = false;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -29,11 +76,12 @@ class _LastZonesState extends State<LastZones> {
                     switchValue = newValue;
                   });
                 },
+                activeColor: customGreen,
               ),
               IconButton(
                 icon: Icon(
                   FontAwesomeIcons.fire,
-                  color: switchValue ? Colors.deepPurple : customWhite,
+                  color: switchValue ? customGreen : customWhite,
                 ),
                 onPressed: () {
                   // Handle button press after input field
@@ -65,14 +113,19 @@ class _LastZonesState extends State<LastZones> {
           SizedBox(height: 8.0), // Добавить отступ в 8 пикселей между Switch и IconButton
           Expanded(
             child: ListView.builder(
-              itemCount: 10,
+              itemCount: zones.length,
               itemBuilder: (BuildContext context, int index) {
-                return Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16.0,
-                  ),
-                  child: ZoneCell(),
-                );
+                if (zones.isNotEmpty && index < zones.length) {
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16.0,
+                    ),
+                    child: ZoneCell(zone: zones[index]),
+                  );
+                } else {
+                  // Верните заглушку или пустой виджет, если условия не выполняются
+                  return Container();
+                }
               },
             ),
           ),

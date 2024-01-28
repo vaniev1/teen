@@ -9,12 +9,12 @@ class MyZoneCell extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => ConversationView(),
-          ),
-        );
+        //Navigator.push(
+          //context,
+          //MaterialPageRoute(
+            //builder: (context) => ConversationView(),
+          //),
+        //);
       },
       child: Container(
         width: double.infinity,
