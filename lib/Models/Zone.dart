@@ -27,7 +27,7 @@ class Zone {
 
   factory Zone.fromJson(Map<String, dynamic> json) {
     return Zone(
-      id: json['id'] ?? '',
+      id: json['_id'] ?? '',
       uid: json['uid'] ?? '',
       fullname: json['fullname'] ?? '',
       username: json['username'] ?? '',

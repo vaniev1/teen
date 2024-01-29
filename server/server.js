@@ -19,7 +19,9 @@ const path = require('path');
 const nodemailer = require('nodemailer');
 const sharp = require('sharp');
 const fs = require('fs'); // Добавьте эту строку
-
+const Message = require('./Message');
+const socketIO = require('socket.io');
+const http = require('http');
 
 
 
@@ -299,8 +301,6 @@ app.post('/register', avatarsUpload.single('selectedImage'), async (req, res) =>
 
 
 app.post('/login', passport.authenticate('local'), (req, res) => {
-  // Аутентификация успешна
-  // Создаем и отправляем токен
   const token = createToken(req.user);
   res.status(200).json({ token });
 });
@@ -544,6 +544,56 @@ app.get('/zones', async (req, res) => {
   } catch (error) {
     console.error('Ошибка при получении зон:', error);
     res.status(500).json({ error: 'Ошибка при получении зон' });
+  }
+});
+
+// Роут для получения всех сообщений для данной зоны
+app.get('/zones/:zoneId/messages', async (req, res) => {
+  try {
+    const { zoneId } = req.params;
+    const zone = await Zone.findById(zoneId);
+
+    if (!zone) {
+      return res.status(404).json({ error: 'Зона не найдена.' });
+    }
+
+    const messages = zone.data.messages;
+    res.status(200).json({ messages });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Произошла ошибка при получении сообщений для зоны.' });
+  }
+});
+
+app.post('/zones/:zoneId/messages', async (req, res) => {
+  try {
+    const zoneId = req.params.zoneId;
+    const { uid, username, selectedImagePath, message } = req.body;
+
+    // Найдите зону по zoneId
+    const zone = await Zone.findById(zoneId);
+
+    // Если зона не найдена, верните ошибку 404
+    if (!zone) {
+      return res.status(404).json({ error: 'Зона не найдена' });
+    }
+
+    // Добавьте новое сообщение во вложенный документ messages
+    zone.data.messages.push({
+      uid,
+      username,
+      selectedImagePath,
+      message,
+      timestamp: new Date(),
+    });
+
+    // Сохраните обновленный документ в базе данных
+    await zone.save();
+
+    res.status(200).json({ message: 'Сообщение успешно добавлено' });
+  } catch (error) {
+    console.error('Ошибка при добавлении сообщения:', error);
+    res.status(500).json({ error: 'Ошибка сервера' });
   }
 });
 

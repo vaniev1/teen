@@ -1,15 +1,6 @@
 import 'package:flutter/material.dart';
-//import 'package:vizzie/SplashScreen_view.dart';
-//import 'package:vizzie/about_vizzie.dart';
-//import 'package:vizzie/blockedAccount_view.dart';
-//import 'package:vizzie/privacy_view.dart';
-//import 'package:vizzie/registration_number_view.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:intl/date_symbol_data_local.dart';
-//import 'package:vizzie/safetyMenu_view.dart';
-//import 'content_view.dart';
-//import 'login_view.dart';
-//import 'registration_view.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:jwt_decode/jwt_decode.dart';

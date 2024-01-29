@@ -358,7 +358,7 @@ class _RegistrationNumberViewState extends State<RegistrationNumberView> {
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 0),
                 child: Text(
-                  'Пожалуйста, введите вашу рабочую почту, на него мы отправим вам 6-ти значный код подтверждения',
+                  'Пожалуйста, введите вашу рабочую почту, на нее мы отправим вам 6-ти значный код подтверждения',
                   style: TextStyle(fontSize: 16.0, color: Colors.grey),
                   textAlign: TextAlign.justify,
                 ),
