@@ -107,7 +107,7 @@ class _NewZoneState extends State<NewZone> {
       isLoading = true;
     });
 
-    final url = Uri.parse('http://192.168.0.16:3000/zone');
+    final url = Uri.parse('http://192.168.0.14:3000/zone');
 
     Map<String, dynamic> userData = await getUserDataFromToken();
 

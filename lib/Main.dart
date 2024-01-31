@@ -15,7 +15,7 @@ Color background = Color(0xFF1D1332);
 Future<void> updateLastUse(String id) async {
   try {
     final response = await http.post(
-      Uri.parse('http://213.171.12.210:27017/updateLastUse'),
+      Uri.parse('http://192.168.0.14:3000/updateLastUse'),
       headers: {'Content-Type': 'application/json'},
       body: json.encode({'id': id}),
     );
@@ -46,7 +46,7 @@ Future<bool> checkLoginStatus() async {
 
 Future<bool> checkBlockedStatus(String id) async {
   //Поменяй на прод
-  final response = await http.get(Uri.parse('http://213.171.12.210:27017/checkBlockedStatus/$id'));
+  final response = await http.get(Uri.parse('http://192.168.0.14:3000/checkBlockedStatus/$id'));
 
   if (response.statusCode == 200) {
     Map<String, dynamic> data = json.decode(response.body);

@@ -31,7 +31,7 @@ class ChatBubble extends StatelessWidget {
             CircleAvatar(
               radius: 20,
               backgroundImage: CachedNetworkImageProvider(
-                  "http://192.168.0.16:3000/${photo}"),
+                  "http://192.168.0.14:3000/${photo}"),
             ),
           if (sender != 'User1' && photo.isNotEmpty)
             SizedBox(width: 8.0),

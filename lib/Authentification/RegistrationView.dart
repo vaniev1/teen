@@ -73,7 +73,7 @@ class _RegistrationViewState extends State<RegistrationView> {
 
   void checkUsernameInDatabase() async {
     // Добавьте ваш URL для проверки номера телефона
-    var url = Uri.parse('http://192.168.0.16:3000/checkUsername');
+    var url = Uri.parse('http://192.168.0.14:3000/checkUsername');
     var response = await http.post(
       url,
       headers: {
@@ -100,7 +100,7 @@ class _RegistrationViewState extends State<RegistrationView> {
       isLoading = true;
     });
 
-    final url = Uri.parse('http://192.168.0.16:3000/register');
+    final url = Uri.parse('http://192.168.0.14:3000/register');
     try {
       // Use MultipartRequest for uploading files
       var request = http.MultipartRequest('POST', url);

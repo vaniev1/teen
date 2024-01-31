@@ -60,7 +60,7 @@ class _ZoneCellState extends State<ZoneCell> {
               // Заливка для текста
               // Изображение
               CachedNetworkImage(
-                imageUrl: "http://192.168.0.16:3000/${widget.zone.avatar}",
+                imageUrl: "http://192.168.0.14:3000/${widget.zone.avatar}",
                 fit: BoxFit.cover,
                 width: double.infinity,
                 height: 220,

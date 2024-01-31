@@ -42,7 +42,7 @@ class _ZoneInfoState extends State<ZoneInfo> {
                   ClipRRect(
                     borderRadius: BorderRadius.circular(10),
                     child: CachedNetworkImage(
-                      imageUrl: "http://192.168.0.16:3000/${widget.zone.avatar}",
+                      imageUrl: "http://192.168.0.14:3000/${widget.zone.avatar}",
                       fit: BoxFit.cover,
                       width: double.infinity,
                       height: 220,
@@ -133,7 +133,7 @@ class _ZoneInfoState extends State<ZoneInfo> {
                     padding: const EdgeInsets.all(0.0),
                     child: CircleAvatar(
                       radius: 25, // Установите радиус в соответствии с вашими требованиями
-                      backgroundImage: CachedNetworkImageProvider("http://192.168.0.16:3000/${widget.zone.selectedImagePath}"),
+                      backgroundImage: CachedNetworkImageProvider("http://192.168.0.14:3000/${widget.zone.selectedImagePath}"),
                     ),
                   ),
                   SizedBox(width: 15),
@@ -187,7 +187,7 @@ class _ZoneInfoState extends State<ZoneInfo> {
                           padding: const EdgeInsets.all(0.0),
                           child: CircleAvatar(
                             radius: 25, // Установите радиус в соответствии с вашими требованиями
-                            backgroundImage: CachedNetworkImageProvider("http://192.168.0.16:3000/${widget.zone.selectedImagePath}"),
+                            backgroundImage: CachedNetworkImageProvider("http://192.168.0.14:3000/${widget.zone.selectedImagePath}"),
                           ),
                         ),
                         SizedBox(width: 10),

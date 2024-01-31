@@ -38,7 +38,7 @@ class _LastZonesState extends State<LastZones> {
     });
 
     try {
-      final response = await http.get(Uri.parse('http://192.168.0.16:3000/zones'));
+      final response = await http.get(Uri.parse('http://192.168.0.14:3000/zones'));
       if (response.statusCode == 200) {
         List<dynamic> jsonResponse = json.decode(response.body);
         List<Zone> fetchedZones = jsonResponse.map((data) => Zone.fromJson(data)).toList();
@@ -90,7 +90,7 @@ class _LastZonesState extends State<LastZones> {
               Expanded(
                 child: TextField(
                   decoration: InputDecoration(
-                    prefixIcon: Icon(FontAwesomeIcons.search),
+                    prefixIcon: Icon(FontAwesomeIcons.magnifyingGlass),
                     hintText: 'Поиск зоны',
                     filled: true,
                     fillColor: customWhite,

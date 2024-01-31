@@ -597,6 +597,17 @@ app.post('/zones/:zoneId/messages', async (req, res) => {
   }
 });
 
+app.get('/user/zones', passport.authenticate('jwt', { session: false }), async (req, res) => {
+  try {
+    const userId = req.user.id; // Получите идентификатор текущего пользователя из JWT-токена
+    const zones = await Zone.find({ uid: userId }).exec();
+    res.status(200).json(zones);
+  } catch (error) {
+    console.error('Ошибка при получении желаний пользователя:', error);
+    res.status(500).json({ error: 'Ошибка при получении желаний пользователя' });
+  }
+});
+
 
 //const PORT = 27017;
 const PORT = 3000;

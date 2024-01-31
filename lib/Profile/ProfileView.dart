@@ -1,7 +1,13 @@
+import 'dart:convert';
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import '../ Feed/MyZoneCell.dart';
+import 'package:jwt_decoder/jwt_decoder.dart';
+import 'package:teen/%20Feed/LastZones.dart';
+import 'package:teen/Models/Zone.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../ Feed/ZoneCell.dart';
 
 Color backgroundColor = Color(0xFF1A1A1A);
 Color color1 = Color(0xFF282828);
@@ -24,16 +30,91 @@ void _logout(BuildContext context) async {
 }
 
 class _ProfileViewState extends State<ProfileView> {
+  String? _username = '';
+  String? _fullname = '';
+  String userSelectedImagePath = '';
+  List<Zone> zones = [];
+
+  List<Zone> parseZones(String responseBody) {
+    final List<dynamic> parsed = json.decode(responseBody);
+    return parsed.map<Zone>((json) => Zone.fromJson(json)).toList();
+  }
+
   PageController _pageController = PageController(initialPage: 0);
   ProfileFilterOptions _selectedFilter = ProfileFilterOptions.zones;
 
-  final String username = "vaniev";
+
+
+  @override
+  void initState() {
+    super.initState();
+    getProfileImagePath().then((path) {
+      setState(() {
+        userSelectedImagePath = path;
+      });
+    });
+    loadUserWishes();
+    loadUsername();
+  }
+
+  Future<void> loadUsername() async {
+    final token = await _getToken();
+    if (token != null) {
+      final decodedToken = JwtDecoder.decode(token);
+      final username = decodedToken['username'];
+      final fullname = decodedToken['firstNameLastName'];
+      setState(() {
+        _username = username;
+        _fullname = fullname;
+      });
+    }
+  }
+
+  Future<void> loadUserWishes() async {
+    final token = await _getToken();
+
+    final response = await http.get(
+      Uri.parse(
+          'http://192.168.0.14:3000/user/zones'), // Замените на ваш URL сервера
+      headers: {
+        'Authorization': 'Bearer $token',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      // Распарсите список желаний из response.body и сохраните их в состояние
+      final List<Zone> userZones = parseZones(response.body);
+
+      userZones.sort((a, b) => b.timestamp.compareTo(a.timestamp));
+      setState(() {
+        zones = userZones;
+      });
+    } else {
+    }
+  }
+
+  Future<String?> _getToken() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString('authToken');
+  }
+
+  Future<String> getProfileImagePath() async {
+    final token = await _getToken();
+    if (token != null) {
+      final decodedToken = JwtDecoder.decode(token);
+      final userSelectedImagePath = decodedToken['selectedImagePath'];
+      return userSelectedImagePath;
+    } else {
+      return 'assets/logo.png';
+    }
+  }
+
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(username),
+        title: Text(_username ?? ""),
         foregroundColor: customWhite,
         centerTitle: true,
         backgroundColor: backgroundColor,
@@ -47,11 +128,18 @@ class _ProfileViewState extends State<ProfileView> {
               Container(
                 width: 106,
                 height: 106,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  image: DecorationImage(
-                    image: AssetImage('assets/me.jpg'),
-                    fit: BoxFit.cover,
+                child: CachedNetworkImage(
+                  imageUrl: 'http://192.168.0.14:3000/${userSelectedImagePath}',
+                  placeholder: (context, url) => CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(customGreen)), // Замените это на ваш загрузочный индикатор
+                  errorWidget: (context, url, error) => Icon(Icons.error), // Замените это на ваш виджет ошибки
+                  imageBuilder: (context, imageProvider) => Container(
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      image: DecorationImage(
+                        image: imageProvider,
+                        fit: BoxFit.cover,
+                      ),
+                    ),
                   ),
                 ),
               ),
@@ -59,7 +147,7 @@ class _ProfileViewState extends State<ProfileView> {
               Align(
                 alignment: Alignment.center,
                 child: Text(
-                  "Azamat Vaniev",
+                  _fullname ?? "",
                   style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
@@ -91,15 +179,32 @@ class _ProfileViewState extends State<ProfileView> {
     );
   }
 
-  Widget _buildWishesPage() {
-    List<MyZoneCell> myZones = List.generate(
-      10,
-          (index) => MyZoneCell(),
-    );
 
-    return ListView(
-      children: myZones,
+  Widget _buildWishesPage() {
+    return zones.isEmpty
+        ? Center(
+      child: Text(
+        "Вы пока не создали ни одну зону",
+        style: TextStyle(
+          fontSize: 18.0,
+          color: customWhite,
+        ),
+      ),
+    )
+        : ListView(
+      children: _buildZonesList(zones),
     );
+  }
+
+  List<Widget> _buildZonesList(List<Zone> zoneList) {
+    return zoneList.map((zone) {
+      return Padding(
+        padding: EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+        child: Container(
+          child: ZoneCell(zone: zone),
+        ),
+      );
+    }).toList();
   }
 
   Widget _buildSettingsPage() {
@@ -260,7 +365,7 @@ extension SettingViewModelExtension on SettingViewModel {
   }
 
   void onTap(BuildContext context) {
-    final Uri _url = Uri.parse('https://t.me/vizzieappp');
+    //final Uri _url = Uri.parse('https://t.me/vizzieappp');
 
     //Future<void> _launchUrl() async {
     //if (!await launchUrl(_url)) {
