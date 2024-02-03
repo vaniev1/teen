@@ -70,7 +70,7 @@ class _ConversationViewState extends State<ConversationView> {
 
   Future<List<Message>> getZoneMessages(String zoneId) async {
     final response = await http.get(
-        Uri.parse('http://192.168.0.14:3000/zones/$zoneId/messages'));
+        Uri.parse('${AppConfig.apiUrl}/zones/$zoneId/messages'));
 
     if (response.statusCode == 200) {
       final List<dynamic> messagesJson = jsonDecode(response.body)['messages'];
@@ -110,7 +110,7 @@ class _ConversationViewState extends State<ConversationView> {
                     child: CircleAvatar(
                       radius: 20,
                       backgroundImage: CachedNetworkImageProvider(
-                          "http://192.168.0.14:3000/${widget.zone.avatar}"),
+                          "${AppConfig.apiUrl}/${widget.zone.avatar}"),
                     ),
                   ),
                 ],

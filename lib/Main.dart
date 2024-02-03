@@ -4,6 +4,7 @@ import 'package:intl/date_symbol_data_local.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:jwt_decode/jwt_decode.dart';
+import 'package:teen/Config/AppConfig.dart';
 import 'Authentification/LoginView.dart';
 import 'Authentification/RegistrationMailVIew.dart';
 import 'Authentification/RegistrationView.dart';
@@ -15,7 +16,7 @@ Color background = Color(0xFF1D1332);
 Future<void> updateLastUse(String id) async {
   try {
     final response = await http.post(
-      Uri.parse('http://192.168.0.14:3000/updateLastUse'),
+      Uri.parse('http://${AppConfig.apiUrl}/updateLastUse'),
       headers: {'Content-Type': 'application/json'},
       body: json.encode({'id': id}),
     );
@@ -46,7 +47,7 @@ Future<bool> checkLoginStatus() async {
 
 Future<bool> checkBlockedStatus(String id) async {
   //Поменяй на прод
-  final response = await http.get(Uri.parse('http://192.168.0.14:3000/checkBlockedStatus/$id'));
+  final response = await http.get(Uri.parse('${AppConfig.apiUrl}/checkBlockedStatus/$id'));
 
   if (response.statusCode == 200) {
     Map<String, dynamic> data = json.decode(response.body);
