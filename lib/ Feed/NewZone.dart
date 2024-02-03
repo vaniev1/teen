@@ -9,6 +9,8 @@ import 'package:intl/intl.dart';
 import 'package:flutter/services.dart';
 import 'dart:ui' as ui;
 
+import '../Config/AppConfig.dart';
+
 
 Color backgroundColor = Color(0xFF1A1A1A); // Цвет фона
 Color customWhite = Color(0xFFCDD0CF); // Цвет белого
@@ -107,7 +109,7 @@ class _NewZoneState extends State<NewZone> {
       isLoading = true;
     });
 
-    final url = Uri.parse('http://192.168.0.14:3000/zone');
+    final url = Uri.parse('${AppConfig.apiUrl}/zone');
 
     Map<String, dynamic> userData = await getUserDataFromToken();
 

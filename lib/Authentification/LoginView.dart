@@ -6,6 +6,7 @@ import 'package:jwt_decoder/jwt_decoder.dart';
 import 'package:flutter/services.dart';
 import '../ContentView.dart';
 import '../Profile/BlockedAccountView.dart';
+import '../Config/AppConfig.dart';
 
 
 Color backgroundColor = Colors.black; // Цвет фона
@@ -61,7 +62,7 @@ class _LoginViewState extends State<LoginView> {
     String password = passwordController.text;
 
     final response = await http.post(
-      Uri.parse('http://192.168.0.14:3000/login'),
+      Uri.parse('${AppConfig.apiUrl}/login'),
       headers: <String, String>{
         'Content-Type': 'application/json',
       },
@@ -105,7 +106,7 @@ class _LoginViewState extends State<LoginView> {
   }
 
   Future<bool> checkBlockedStatus(String id) async {
-    final response = await http.get(Uri.parse('http://192.168.0.14:3000/checkBlockedStatus/$id'));
+    final response = await http.get(Uri.parse('${AppConfig.apiUrl}/checkBlockedStatus/$id'));
 
     if (response.statusCode == 200) {
       Map<String, dynamic> data = json.decode(response.body);

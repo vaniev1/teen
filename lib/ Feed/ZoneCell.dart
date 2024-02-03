@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import '../Config/AppConfig.dart';
 import '../Conversation/ConversationView.dart';
 import '../Models/Zone.dart';
 
@@ -60,7 +61,7 @@ class _ZoneCellState extends State<ZoneCell> {
               // Заливка для текста
               // Изображение
               CachedNetworkImage(
-                imageUrl: "http://192.168.0.14:3000/${widget.zone.avatar}",
+                imageUrl: "${AppConfig.apiUrl}/${widget.zone.avatar}",
                 fit: BoxFit.cover,
                 width: double.infinity,
                 height: 220,

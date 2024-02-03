@@ -26,7 +26,7 @@ const http = require('http');
 
 
 // Подключение к MongoDB
-mongoose.connect('mongodb://localhost/teen', {
+mongoose.connect('mongodb://gen_user:J-~3oHucM%24rWA%5C@83.147.244.95:27017/Teen?authSource=admin&directConnection=true', {
   useNewUrlParser: true,
   useUnifiedTopology: true,
 })
@@ -609,8 +609,8 @@ app.get('/user/zones', passport.authenticate('jwt', { session: false }), async (
 });
 
 
-//const PORT = 27017;
-const PORT = 3000;
+const PORT = 27017;
+//const PORT = 3000;
 
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);

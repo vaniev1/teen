@@ -6,6 +6,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:jwt_decoder/jwt_decoder.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../Config/AppConfig.dart';
 
 
 
@@ -79,7 +80,7 @@ class _RegistrationNumberViewState extends State<RegistrationNumberView> {
     String password = passwordController.text;
 
     final response = await http.post(
-      Uri.parse('http://192.168.0.14:3000/login'),
+      Uri.parse('${AppConfig.apiUrl}/login'),
       headers: <String, String>{
         'Content-Type': 'application/json',
       },
@@ -114,7 +115,7 @@ class _RegistrationNumberViewState extends State<RegistrationNumberView> {
   }
 
   void checkEmailInDatabase() async {
-    var url = Uri.parse('http://192.168.0.14:3000/checkEmail'); // Изменяем URL
+    var url = Uri.parse('${AppConfig.apiUrl}/checkEmail'); // Изменяем URL
     var response = await http.post(
       url,
       headers: {
@@ -249,7 +250,7 @@ class _RegistrationNumberViewState extends State<RegistrationNumberView> {
   // Метод для запроса на отправку кода подтверждения на почту
   Future<void> sendConfirmationCode(String email) async {
     final response = await http.post(
-      Uri.parse('http://192.168.0.14:3000/sendConfirmationCode'),
+      Uri.parse('${AppConfig.apiUrl}/sendConfirmationCode'),
       headers: <String, String>{
         'Content-Type': 'application/json',
       },

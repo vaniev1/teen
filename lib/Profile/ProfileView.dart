@@ -8,6 +8,8 @@ import 'package:teen/%20Feed/LastZones.dart';
 import 'package:teen/Models/Zone.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../ Feed/ZoneCell.dart';
+import '../Config/AppConfig.dart';
+
 
 Color backgroundColor = Color(0xFF1A1A1A);
 Color color1 = Color(0xFF282828);
@@ -75,7 +77,7 @@ class _ProfileViewState extends State<ProfileView> {
 
     final response = await http.get(
       Uri.parse(
-          'http://192.168.0.14:3000/user/zones'), // Замените на ваш URL сервера
+          '${AppConfig.apiUrl}/user/zones'), // Замените на ваш URL сервера
       headers: {
         'Authorization': 'Bearer $token',
       },
@@ -129,7 +131,7 @@ class _ProfileViewState extends State<ProfileView> {
                 width: 106,
                 height: 106,
                 child: CachedNetworkImage(
-                  imageUrl: 'http://192.168.0.14:3000/${userSelectedImagePath}',
+                  imageUrl: '${AppConfig.apiUrl}/${userSelectedImagePath}',
                   placeholder: (context, url) => CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(customGreen)), // Замените это на ваш загрузочный индикатор
                   errorWidget: (context, url, error) => Icon(Icons.error), // Замените это на ваш виджет ошибки
                   imageBuilder: (context, imageProvider) => Container(

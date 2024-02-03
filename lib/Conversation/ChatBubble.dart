@@ -1,5 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import '../Config/AppConfig.dart';
 
 
 Color backgroundColor = Color(0xFF1A1A1A); // Цвет фона
@@ -31,7 +32,7 @@ class ChatBubble extends StatelessWidget {
             CircleAvatar(
               radius: 20,
               backgroundImage: CachedNetworkImageProvider(
-                  "http://192.168.0.14:3000/${photo}"),
+                  "${AppConfig.apiUrl}/${photo}"),
             ),
           if (sender != 'User1' && photo.isNotEmpty)
             SizedBox(width: 8.0),

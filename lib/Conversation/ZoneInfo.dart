@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:teen/Models/Zone.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import '../Config/AppConfig.dart';
+
 
 Color backgroundColor = Color(0xFF1A1A1A);
 Color customWhite = Color(0xFFCDD0CF);
@@ -42,7 +44,7 @@ class _ZoneInfoState extends State<ZoneInfo> {
                   ClipRRect(
                     borderRadius: BorderRadius.circular(10),
                     child: CachedNetworkImage(
-                      imageUrl: "http://192.168.0.14:3000/${widget.zone.avatar}",
+                      imageUrl: "${AppConfig.apiUrl}/${widget.zone.avatar}",
                       fit: BoxFit.cover,
                       width: double.infinity,
                       height: 220,
@@ -133,7 +135,7 @@ class _ZoneInfoState extends State<ZoneInfo> {
                     padding: const EdgeInsets.all(0.0),
                     child: CircleAvatar(
                       radius: 25, // Установите радиус в соответствии с вашими требованиями
-                      backgroundImage: CachedNetworkImageProvider("http://192.168.0.14:3000/${widget.zone.selectedImagePath}"),
+                      backgroundImage: CachedNetworkImageProvider("${AppConfig.apiUrl}/${widget.zone.selectedImagePath}"),
                     ),
                   ),
                   SizedBox(width: 15),
@@ -187,7 +189,7 @@ class _ZoneInfoState extends State<ZoneInfo> {
                           padding: const EdgeInsets.all(0.0),
                           child: CircleAvatar(
                             radius: 25, // Установите радиус в соответствии с вашими требованиями
-                            backgroundImage: CachedNetworkImageProvider("http://192.168.0.14:3000/${widget.zone.selectedImagePath}"),
+                            backgroundImage: CachedNetworkImageProvider("${AppConfig.apiUrl}/${widget.zone.selectedImagePath}"),
                           ),
                         ),
                         SizedBox(width: 10),

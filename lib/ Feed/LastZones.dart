@@ -4,6 +4,7 @@ import 'package:teen/%20Feed/ZoneCell.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import '../Models/Zone.dart';
+import '../Config/AppConfig.dart';
 
 Color customWhite = Color(0xFFCDD0CF);
 Color customGreen = Color(0xFF7ED957); // Зеленый цвет
@@ -38,7 +39,7 @@ class _LastZonesState extends State<LastZones> {
     });
 
     try {
-      final response = await http.get(Uri.parse('http://192.168.0.14:3000/zones'));
+      final response = await http.get(Uri.parse('${AppConfig.apiUrl}/zones'));
       if (response.statusCode == 200) {
         List<dynamic> jsonResponse = json.decode(response.body);
         List<Zone> fetchedZones = jsonResponse.map((data) => Zone.fromJson(data)).toList();

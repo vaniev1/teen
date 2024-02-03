@@ -8,6 +8,8 @@ import 'package:image_picker/image_picker.dart';
 import 'package:http/http.dart' as http;
 import 'dart:ui';
 import '../ContentView.dart';
+import '../Config/AppConfig.dart';
+
 
 Color backgroundColor = Colors.black; // Цвет фона
 Color customWhite = Colors.white; // Цвет белого
@@ -73,7 +75,7 @@ class _RegistrationViewState extends State<RegistrationView> {
 
   void checkUsernameInDatabase() async {
     // Добавьте ваш URL для проверки номера телефона
-    var url = Uri.parse('http://192.168.0.14:3000/checkUsername');
+    var url = Uri.parse('${AppConfig.apiUrl}/checkUsername');
     var response = await http.post(
       url,
       headers: {
@@ -100,7 +102,7 @@ class _RegistrationViewState extends State<RegistrationView> {
       isLoading = true;
     });
 
-    final url = Uri.parse('http://192.168.0.14:3000/register');
+    final url = Uri.parse('${AppConfig.apiUrl}/register');
     try {
       // Use MultipartRequest for uploading files
       var request = http.MultipartRequest('POST', url);
