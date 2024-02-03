@@ -1,6 +1,6 @@
-package com.example.teen
+package thevisualapp.Teen
 
-import io.flutter.embedding.android.FlutterActivity
+//import io.flutter.embedding.android.FlutterActivity
 
-class MainActivity: FlutterActivity() {
-}
+//class MainActivity: FlutterActivity() {
+//}

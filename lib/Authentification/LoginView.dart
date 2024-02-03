@@ -83,7 +83,7 @@ class _LoginViewState extends State<LoginView> {
       final isBlocked = await checkBlockedStatus(id);
 
       if (isBlocked) {
-        Navigator.pushNamed(context, '/blocked');
+        //Navigator.pushNamed(context, '/blocked');
         Navigator.replace(
           context,
           oldRoute: ModalRoute.of(context)!,
@@ -92,7 +92,14 @@ class _LoginViewState extends State<LoginView> {
           ),
         );
       } else {
-        Navigator.pushNamed(context, '/content');
+        //Navigator.pushNamed(context, '/content');
+        Navigator.replace(
+          context,
+          oldRoute: ModalRoute.of(context)!,
+          newRoute: MaterialPageRoute(
+            builder: (context) => ContentView(initialIndex: 0), // Replace ContentPage with your desired page
+          ),
+        );
       }
     } else {
       setState(() {

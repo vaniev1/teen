@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
+import 'package:teen/Config/AppConfig.dart';
 import 'package:teen/Models/Zone.dart';
 import 'ChatBubble.dart';
 import 'Message.dart';
@@ -197,7 +198,7 @@ class _ConversationViewState extends State<ConversationView> {
       print('Sending message to zone: ${widget.zone.id}');
 
       final response = await http.post(
-        Uri.parse('http://192.168.0.14:3000/zones/${widget.zone.id}/messages'),
+        Uri.parse('${AppConfig.apiUrl}/zones/${widget.zone.id}/messages'),
         headers: {
           'Content-Type': 'application/json',
         },

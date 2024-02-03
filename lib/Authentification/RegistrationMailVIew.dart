@@ -7,6 +7,7 @@ import 'dart:convert';
 import 'package:jwt_decoder/jwt_decoder.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../Config/AppConfig.dart';
+import '../ContentView.dart';
 
 
 
@@ -101,7 +102,14 @@ class _RegistrationNumberViewState extends State<RegistrationNumberView> {
 
       });
       _saveToken(token); // Сохраните токен
-      Navigator.pushNamed(context, '/content');
+      //Navigator.pushNamed(context, '/content');
+      Navigator.replace(
+        context,
+        oldRoute: ModalRoute.of(context)!,
+        newRoute: MaterialPageRoute(
+          builder: (context) => ContentView(initialIndex: 0), // Replace ContentPage with your desired page
+        ),
+      );
     } else {
 
       setState(() {
