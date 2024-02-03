@@ -261,7 +261,8 @@ class _RegistrationNumberViewState extends State<RegistrationNumberView> {
 
     if (response.statusCode == 200) {
       final Map<String, dynamic> responseBody = jsonDecode(response.body);
-      generatedPassword = responseBody['confirmationCode'].toString();      print('Код подтверждения отправлен на почту');
+      generatedPassword = responseBody['confirmationCode'].toString();
+      print('Код подтверждения отправлен на почту');
       print('Отправленный код: $generatedPassword');
     } else {
       print('Ошибка при отправке кода подтверждения');

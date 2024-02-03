@@ -27,8 +27,6 @@ const http = require('http');
 
 // Подключение к MongoDB
 mongoose.connect('mongodb://gen_user:D-%5Cr%3DIWZ%3C%24GyH1@82.97.255.19:27017/teen?authSource=admin&directConnection=true', {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
 })
   .then(() => console.log('Подключение к MongoDB установлено'))
   .catch(err => console.error('Ошибка подключения к MongoDB: ', err));
