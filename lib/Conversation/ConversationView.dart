@@ -26,16 +26,36 @@ class ConversationView extends StatefulWidget {
 }
 
 class _ConversationViewState extends State<ConversationView> {
+  final ScrollController _scrollController = ScrollController();
   late Future<List<Message>> messagesFuture;
   final TextEditingController _textController = TextEditingController();
   late String currentUserUid;  // Добавлена переменная для хранения UID текущего пользователя
-
+  bool _isBottomButtonVisible = false;
 
   @override
   void initState() {
     super.initState();
     messagesFuture = getZoneMessages(widget.zone.id);
-    getCurrentUserUid();  // Вызываем функцию для получения UID текущего пользователя
+    messagesFuture.then((messages) {
+      WidgetsBinding.instance!.addPostFrameCallback((_) {
+        _scrollController.jumpTo(_scrollController.position.maxScrollExtent);
+      });
+    });
+    getCurrentUserUid();
+    _scrollController.addListener(_updateBottomButtonVisibility);
+  }
+
+  void _updateBottomButtonVisibility() {
+    if (_scrollController.position.pixels >=
+        _scrollController.position.maxScrollExtent - 50.0) {
+      setState(() {
+        _isBottomButtonVisible = false;
+      });
+    } else {
+      setState(() {
+        _isBottomButtonVisible = true;
+      });
+    }
   }
 
   final timestamp = DateFormat('yyyy-MM-dd HH:mm:ss', 'en')
@@ -122,25 +142,29 @@ class _ConversationViewState extends State<ConversationView> {
               future: messagesFuture,
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
-                  return CircularProgressIndicator();
+                  return Center(
+                    child: CircularProgressIndicator(),
+                  );
                 } else if (snapshot.hasError) {
                   return Text('Ошибка: ${snapshot.error}');
                 } else {
                   final List<Message> messages = snapshot.data ?? [];
                   return ListView.builder(
+                    padding: EdgeInsets.zero, // Add this line to remove top padding
+                    controller: _scrollController,
                     itemCount: messages.length,
                     itemBuilder: (context, index) {
-                      final bool isCurrentUser = messages[index].uid == currentUserUid;
+                      final bool isCurrentUser =
+                          messages[index].uid == currentUserUid;
 
                       return ChatBubble(
-                        sender: isCurrentUser ? 'User1' : 'User2',  // Используйте разные метки для отправителя в зависимости от текущего пользователя
+                        sender: isCurrentUser ? 'User1' : 'User2',
                         text: messages[index].message,
                         photo: messages[index].selectedImagePath,
                         username: messages[index].username,
                       );
                     },
                   );
-
                 }
               },
             ),
@@ -185,6 +209,28 @@ class _ConversationViewState extends State<ConversationView> {
           ),
         ],
       ),
+      floatingActionButton: AnimatedOpacity(
+        opacity: _isBottomButtonVisible ? 1.0 : 0.0,
+        duration: Duration(milliseconds: 500), // Установите желаемую длительность анимации
+        child: Padding(
+          padding: const EdgeInsets.only(bottom: 70.0), // Установите нужное вам значение отрицательного отступа
+          child: FloatingActionButton(
+            onPressed: () {
+              _scrollController.animateTo(
+                _scrollController.position.maxScrollExtent,
+                duration: Duration(milliseconds: 1000),
+                curve: Curves.easeInOut,
+              );
+            },
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20.0), // Установите радиус скругления, чтобы сделать кнопку круглой
+            ),
+            backgroundColor: color1, // Установите фоновый цвет кнопки
+            foregroundColor: customWhite, // Установите цвет стрелки
+            child: Icon(Icons.arrow_downward),
+          ),
+        ),
+      ),
     );
   }
 
@@ -215,7 +261,17 @@ class _ConversationViewState extends State<ConversationView> {
         setState(() {
           messagesFuture = getZoneMessages(widget.zone.id);
         });
-        print('Message sent successfully');
+
+        // Добавьте задержку перед прокруткой, чтобы дать время виджету обновиться
+        await Future.delayed(Duration(milliseconds: 300));
+
+        // Прокрутите вниз
+        _scrollController.animateTo(
+          _scrollController.position.maxScrollExtent,
+          duration: Duration(milliseconds: 10),
+          curve: Curves.easeInOut,
+        );
+
       } else {
         // Ошибка при отправке
         print('Error sending message: ${response.body}');

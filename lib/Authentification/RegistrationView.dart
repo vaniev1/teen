@@ -180,13 +180,25 @@ class _RegistrationViewState extends State<RegistrationView> {
 
 
   bool _isNextButtonEnabled() {
+    String firstNameLastName = firstNameLastNameController.text.trim(); // Удаляем пробелы в начале и конце
+    firstNameLastName = firstNameLastName.replaceAll(RegExp(r'^\s+'), ''); // Удаляем пробелы перед первым словом
+    firstNameLastName = firstNameLastName.replaceAll(RegExp(r'\s+'), ' '); // Заменяем все последовательности пробелов между словами на один
+    List<String> nameParts = firstNameLastName.split(' ');
+    String firstName = nameParts.first;
+    String lastName = nameParts.skip(1).join(); // Объединяем все остальные слова без пробелов
+    String formattedName = '$firstName $lastName'; // Добавляем пробел между именем и фамилией
+    firstNameLastNameController.text = formattedName.trim(); // Удаляем пробелы в начале и конце после форматирования
+
     final password = passwordController.text;
-    final username = usernameController.text;
+    final username = usernameController.text.trim(); // Используйте метод trim() для удаления лишних пробелов
 
     // Проверяем, что пароль и имя пользователя длиннее или равны 6 символам
     // и оба поля не пустые
-    if (password.length >= 6 && username.length >= 6 && username.length <= 12 &&
-        firstNameLastNameController.text.isNotEmpty && isChecked) {
+    if (password.length >= 6 &&
+        username.length >= 6 &&
+        username.length <= 12 &&
+        firstNameLastName.isNotEmpty &&
+        isChecked) {
       return _selectedImagePath != null;
     } else {
       return false; // Если условие не выполняется, кнопка будет деактивирована

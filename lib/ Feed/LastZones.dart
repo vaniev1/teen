@@ -9,14 +9,12 @@ import '../Config/AppConfig.dart';
 Color customWhite = Color(0xFFCDD0CF);
 Color customGreen = Color(0xFF7ED957); // Зеленый цвет
 
-
 class LastZones extends StatefulWidget {
   @override
   _LastZonesState createState() => _LastZonesState();
 }
 
 class _LastZonesState extends State<LastZones> {
-
   @override
   void initState() {
     super.initState();
@@ -26,8 +24,13 @@ class _LastZonesState extends State<LastZones> {
   List<Zone> zones = [];
   bool isLoading = false;
 
-
   bool switchValue = false;
+
+
+  Future<void> refreshData() async {
+    await fetchZones();
+  }
+
 
   Future<void> fetchZones() async {
     if (isLoading) {
@@ -42,7 +45,8 @@ class _LastZonesState extends State<LastZones> {
       final response = await http.get(Uri.parse('${AppConfig.apiUrl}/zones'));
       if (response.statusCode == 200) {
         List<dynamic> jsonResponse = json.decode(response.body);
-        List<Zone> fetchedZones = jsonResponse.map((data) => Zone.fromJson(data)).toList();
+        List<Zone> fetchedZones =
+            jsonResponse.map((data) => Zone.fromJson(data)).toList();
 
         fetchedZones.sort((a, b) => b.timestamp.compareTo(a.timestamp));
 
@@ -62,11 +66,13 @@ class _LastZonesState extends State<LastZones> {
 
   @override
   Widget build(BuildContext context) {
-    return Expanded(
+    return RefreshIndicator(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: <Widget>[
-          SizedBox(height: 4.0), // Добавить отступ в 8 пикселей между Switch и IconButton
+          SizedBox(
+              height:
+                  4.0), // Добавить отступ в 8 пикселей между Switch и IconButton
           Row(
             children: [
               SizedBox(width: 25.0), // Добавить горизонтальный отступ
@@ -111,28 +117,40 @@ class _LastZonesState extends State<LastZones> {
               SizedBox(width: 20.0), // Добавить горизонтальный отступ
             ],
           ),
-          SizedBox(height: 8.0), // Добавить отступ в 8 пикселей между Switch и IconButton
+          SizedBox(
+              height:
+                  8.0), // Добавить отступ в 8 пикселей между Switch и IconButton
           Expanded(
-            child: ListView.builder(
-              itemCount: zones.length,
-              itemBuilder: (BuildContext context, int index) {
-                if (zones.isNotEmpty && index < zones.length) {
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16.0,
+            child: isLoading
+                ? Center(
+                    child: CircularProgressIndicator(
+                      valueColor: AlwaysStoppedAnimation<Color>(customGreen),
                     ),
-                    child: ZoneCell(zone: zones[index]),
-                  );
-                } else {
-                  // Верните заглушку или пустой виджет, если условия не выполняются
-                  return Container();
-                }
-              },
-            ),
+                  )
+                : ListView.builder(
+                    itemCount: zones.length,
+                    itemBuilder: (BuildContext context, int index) {
+                      if (zones.isNotEmpty && index < zones.length) {
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16.0,
+                          ),
+                          child: ZoneCell(zone: zones[index]),
+                        );
+                      } else {
+                        // Верните заглушку или пустой виджет, если условия не выполняются
+                        return Container();
+                      }
+                    },
+                  ),
           ),
           // Additional widgets for LastZones content can be added here
         ],
       ),
+      onRefresh: () async {
+        refreshData();
+      },
+      color: customGreen,
     );
   }
 }

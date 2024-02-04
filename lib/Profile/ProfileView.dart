@@ -185,11 +185,12 @@ class _ProfileViewState extends State<ProfileView> {
   Widget _buildWishesPage() {
     return zones.isEmpty
         ? Center(
-      child: Text(
-        "Вы пока не создали ни одну зону",
-        style: TextStyle(
-          fontSize: 18.0,
-          color: customWhite,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 32.0),
+        child: Text(
+          'Какая досада, похоже вы не создали ни одну зону. \nМожет начнем?',
+          style: TextStyle(fontSize: 18.0, color: Colors.grey, letterSpacing: 2),
+          textAlign: TextAlign.justify,
         ),
       ),
     )

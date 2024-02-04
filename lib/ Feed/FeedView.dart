@@ -6,36 +6,23 @@ import 'NewZone.dart';
 
 Color backgroundColor = Color(0xFF1A1A1A); // Цвет фона
 Color customWhite = Color(0xFFCDD0CF); // Цвет белого
+Color customGreen = Color(0xFF00FF00); // Цвет для RefreshIndicator
 
 class MyZonesWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return Container(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: <Widget>[
-          // Your widgets for "Мои зоны" tab
-         MyZones(),
-        ],
-      ),
+    return RefreshIndicator(
+      onRefresh: () async {
+        // Ваш код для обновления данных
+        // Вызовите вашу функцию refreshData() здесь
+        //await Future.delayed(Duration(seconds: 2)); // Пример задержки в 2 секунды
+      },
+      color: customGreen,
+      child: MyZones(),
     );
   }
 }
 
-class LatestWidget extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: <Widget>[
-          // Your widgets for "Последние" tab
-          LastZones(),
-        ],
-      ),
-    );
-  }
-}
 
 class FeedView extends StatefulWidget {
   final int initialIndex;
@@ -55,20 +42,18 @@ class _FeedViewState extends State<FeedView> with SingleTickerProviderStateMixin
     _tabController = TabController(length: 2, vsync: this, initialIndex: widget.initialIndex);
   }
 
-  // Функция для открытия новой страницы с анимацией "fullscreencover"
   void _navigateToNewPage() {
     Navigator.of(context).push(
       PageRouteBuilder(
-        pageBuilder: (context, animation, secondaryAnimation) => NewZone(), // Замените NewZone() на ваш класс страницы
+        pageBuilder: (context, animation, secondaryAnimation) => NewZone(),
         transitionsBuilder: (context, animation, secondaryAnimation, child) {
-          const begin = Offset(0.0, 0.5); // Начать с середины высоты экрана
+          const begin = Offset(0.0, 0.5);
           const end = Offset.zero;
           const curve = Curves.easeInOutQuart;
 
           var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
           var offsetAnimation = animation.drive(tween);
 
-          // Используем ScaleTransition для эффекта увеличения размера
           var scaleAnimation = Tween(begin: 0.8, end: 1.0).animate(animation);
 
           return ScaleTransition(
@@ -78,6 +63,15 @@ class _FeedViewState extends State<FeedView> with SingleTickerProviderStateMixin
         },
       ),
     );
+  }
+
+  Future<void> _refreshData() async {
+    // Ваш код для обновления данных
+    // Вызовите вашу функцию refreshData() здесь
+    //await Future.delayed(Duration(seconds: 2)); // Пример задержки в 2 секунды
+    setState(() {
+
+    });
   }
 
   @override
@@ -111,8 +105,34 @@ class _FeedViewState extends State<FeedView> with SingleTickerProviderStateMixin
       body: TabBarView(
         controller: _tabController,
         children: [
-          MyZonesWidget(),
-          LatestWidget(),
+          FutureBuilder(
+            future: _refreshData(),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return Center(
+                  child: CircularProgressIndicator(
+                    valueColor: AlwaysStoppedAnimation<Color>(customGreen),
+                  ),
+                );
+              } else {
+                return MyZonesWidget();
+              }
+            },
+          ),
+          FutureBuilder(
+            future: _refreshData(),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return Center(
+                  child: CircularProgressIndicator(
+                    valueColor: AlwaysStoppedAnimation<Color>(customGreen),
+                  ),
+                );
+              } else {
+                return LastZones();
+              }
+            },
+          ),
         ],
       ),
       floatingActionButton: FloatingActionButton(
