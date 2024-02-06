@@ -10,6 +10,8 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:jwt_decode/jwt_decode.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:intl/intl.dart';
+import 'package:socket_io_client/socket_io_client.dart' as IO;
+
 
 Color backgroundColor = Color(0xFF1A1A1A); // Цвет фона
 Color customWhite = Color(0xFFCDD0CF); // Цвет белого
@@ -31,10 +33,12 @@ class _ConversationViewState extends State<ConversationView> {
   final TextEditingController _textController = TextEditingController();
   late String currentUserUid;  // Добавлена переменная для хранения UID текущего пользователя
   bool _isBottomButtonVisible = false;
+  late IO.Socket socket;
 
   @override
   void initState() {
     super.initState();
+    initSocket();
     messagesFuture = getZoneMessages(widget.zone.id);
     messagesFuture.then((messages) {
       WidgetsBinding.instance!.addPostFrameCallback((_) {
@@ -44,6 +48,36 @@ class _ConversationViewState extends State<ConversationView> {
     getCurrentUserUid();
     _scrollController.addListener(_updateBottomButtonVisibility);
   }
+
+  void initSocket() {
+    try {
+      socket = IO.io(AppConfig.apiUrl, <String, dynamic>{
+        'transports': ['websocket'],
+        'autoConnect': true,
+      });
+
+      socket.onConnect((_) {
+        print('Connected to socket');
+      });
+
+      socket.onDisconnect((_) {
+        print('Disconnected from socket');
+      });
+
+      socket.on('newMessage', (data) {
+        // Обработка нового сообщения, например, добавление его к списку сообщений
+        print('New message received');
+        setState(() {
+          messagesFuture = getZoneMessages(widget.zone.id);
+        });
+      });
+    } catch (e) {
+      print('Error initializing socket: $e');
+    }
+  }
+
+
+
 
   void _updateBottomButtonVisibility() {
     if (_scrollController.position.pixels >=
@@ -242,6 +276,13 @@ class _ConversationViewState extends State<ConversationView> {
       final selectedImagePath = userData['selectedImagePath'];
 
       print('Sending message to zone: ${widget.zone.id}');
+
+      socket.emit('sendMessage', {
+        'uid': userId,
+        'username': username,
+        'selectedImagePath': selectedImagePath,
+        'message': text,
+      });
 
       final response = await http.post(
         Uri.parse('${AppConfig.apiUrl}/zones/${widget.zone.id}/messages'),

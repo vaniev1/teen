@@ -25,11 +25,11 @@ const http = require('http');
 
 
 
-// Подключение к MongoDB
 mongoose.connect('mongodb://gen_user:D-%5Cr%3DIWZ%3C%24GyH1@82.97.255.19:27017/teen?authSource=admin&directConnection=true', {
 })
   .then(() => console.log('Подключение к MongoDB установлено'))
   .catch(err => console.error('Ошибка подключения к MongoDB: ', err));
+
 
 // Middleware
 app.use(cors());
@@ -607,9 +607,31 @@ app.get('/user/zones', passport.authenticate('jwt', { session: false }), async (
 });
 
 
-const PORT = 27017;
-//const PORT = 3000;
+const server = http.createServer(app);
+const io = socketIO(server);
 
-app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
+// Подключение к сокету
+io.on('connection', (socket) => {
+
+  // Прослушивание события отправки сообщения
+  socket.on('sendMessage', (message) => {
+    // Обработка сообщения и отправка его всем подключенным клиентам
+    io.emit('newMessage', message);
+  });
+
+  // Прослушивание события отключения пользователя
+  socket.on('disconnect', () => {
+  });
 });
+
+
+const PORT = 27017; // HTTP порт
+const WS_PORT = 8080; // WebSocket порт
+
+// Слушаем порты для HTTP и WebSocket
+server.listen(PORT, () => {
+  console.log(`HTTP server is running on port ${PORT}`);
+});
+
+io.listen(WS_PORT);
+console.log(`WebSocket server is running on port ${WS_PORT}`);
